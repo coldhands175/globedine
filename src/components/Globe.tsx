@@ -32,6 +32,13 @@ interface Region {
   color: string;
 }
 
+export interface Arc {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+}
+
 interface GlobeProps {
   onRegionHover?: (region: string | null) => void;
   highlightedRegion?: string | null;
@@ -181,6 +188,7 @@ export const GlobeComponent = ({
   const [isGlobeLoaded, setIsGlobeLoaded] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [geoJsonData, setGeoJsonData] = useState<any>(null);
+  const [arcs, setArcs] = useState<Arc[]>([]);
 
   // Create a memoized version of the recipes data as points
   const recipesData = React.useMemo(() => {
@@ -392,6 +400,11 @@ export const GlobeComponent = ({
             `;
           });
       }
+
+      // Render arcs if provided
+      if (arcs.length > 0) {
+        globe.arcsData(arcs);
+      }
       
       // Set up hover events for countries
       globe.onHexPolygonHover(polygon => {
@@ -473,11 +486,15 @@ export const GlobeComponent = ({
           .pointColor(d => d.id === selectedRecipe?.id ? '#ffd700' : d.color)
           .pointRadius(d => d.id === selectedRecipe?.id ? 0.4 : 0.25);
       }
+
+      if (arcs.length > 0) {
+        globe.arcsData(arcs);
+      }
       
     } catch (error) {
       console.error('Error updating globe properties:', error);
     }
-  }, [recipes, recipesData, selectedRecipe]);
+  }, [recipes, recipesData, selectedRecipe, arcs]);
 
   // Center globe on selected recipe's country and add pulsing effect
   useEffect(() => {
