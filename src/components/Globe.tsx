@@ -377,13 +377,27 @@ export const GlobeComponent = ({
         .hexPolygonsData(geoJsonData.features)
         .hexPolygonResolution(3)
         .hexPolygonMargin(0.3)
-        .hexPolygonColor(() => {
+        .hexPolygonColor((d: any) => {
+          const country = d.properties?.ADMIN as string | undefined;
+          const region = country ? countryToRegion[country] : undefined;
+
+          const isHighlighted =
+            (highlightedRegion &&
+              (highlightedRegion === country || highlightedRegion === region)) ||
+            (activeRegion &&
+              (activeRegion.name === country || activeRegion.name === region));
+
+          if (isHighlighted) {
+            return '#ffea00'; // bright highlight
+          }
+
           // Generate colors in yellow-green spectrum
           const hue = Math.floor(60 + Math.random() * 60); // Hue between 60 (yellow) and 120 (green)
           const saturation = Math.floor(70 + Math.random() * 30); // 70-100%
           const lightness = Math.floor(30 + Math.random() * 40); // 30-70%
           return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-        });
+        })
+        .hexPolygonHoverColor(() => '#fffb91');
       
       // Add recipe points if available
       if (recipes.length > 0) {
@@ -476,7 +490,7 @@ export const GlobeComponent = ({
   // Handle updates to globe properties without re-initializing
   useEffect(() => {
     if (!globeRef.current) return;
-    
+
     try {
       const globe = globeRef.current;
       
@@ -488,14 +502,44 @@ export const GlobeComponent = ({
           .pointRadius(d => d.id === selectedRecipe?.id ? 0.4 : 0.25);
       }
 
-      if (arcs.length > 0) {
-        globe.arcsData(arcs);
-      }
-      
     } catch (error) {
       console.error('Error updating globe properties:', error);
     }
   }, [recipes, recipesData, selectedRecipe, arcs]);
+
+  // Update polygon colors when highlighted or active region changes
+  useEffect(() => {
+    if (!globeRef.current) return;
+
+    try {
+      const globe = globeRef.current;
+
+      globe
+        .hexPolygonColor((d: any) => {
+          const country = d.properties?.ADMIN as string | undefined;
+          const region = country ? countryToRegion[country] : undefined;
+
+          const isHighlighted =
+            (highlightedRegion &&
+              (highlightedRegion === country || highlightedRegion === region)) ||
+            (activeRegion &&
+              (activeRegion.name === country || activeRegion.name === region));
+
+          if (isHighlighted) {
+            return '#ffea00';
+          }
+
+          const hue = Math.floor(60 + Math.random() * 60);
+          const saturation = Math.floor(70 + Math.random() * 30);
+          const lightness = Math.floor(30 + Math.random() * 40);
+          return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        })
+        .hexPolygonHoverColor(() => '#fffb91');
+
+    } catch (error) {
+      console.error('Error updating polygon colors:', error);
+    }
+  }, [highlightedRegion, activeRegion]);
 
   // Center globe on selected recipe's country and add pulsing effect
   useEffect(() => {
