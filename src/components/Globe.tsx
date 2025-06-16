@@ -3,6 +3,9 @@ import * as THREE from "three";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
+// Toggle debug logging based on Vite's dev mode
+const DEBUG = import.meta.env.DEV;
+
 // Extend the Window interface to include the Globe instance
 declare global {
   interface Window {
@@ -238,12 +241,12 @@ export const GlobeComponent = ({
     script.crossOrigin = "anonymous";
     
     script.onload = () => {
-      console.log("Globe.gl script loaded");
+      if (DEBUG) console.log("Globe.gl script loaded");
       setIsGlobeLoaded(true);
     };
     
     document.body.appendChild(script);
-    console.log("Globe.gl script added to page");
+    if (DEBUG) console.log("Globe.gl script added to page");
 
     // No cleanup for the script - we want it to persist across component mounts
     // to avoid reloading it multiple times
@@ -254,7 +257,7 @@ export const GlobeComponent = ({
     if (!country?.properties) return;
     
     const countryName = country.properties.ADMIN || 'Unknown';
-    console.log(`Country clicked: ${countryName}`);
+    if (DEBUG) console.log(`Country clicked: ${countryName}`);
     
     // Find closest region to the country's position
     let lat = 0, lng = 0;
@@ -268,7 +271,7 @@ export const GlobeComponent = ({
         const coords = country.geometry.coordinates[0][0];
         lng = coords[0] || 0;
         lat = coords[1] || 0;
-        console.log(`Coordinates: lat ${lat}, lng ${lng}`);
+        if (DEBUG) console.log(`Coordinates: lat ${lat}, lng ${lng}`);
       }
     } catch (e) {
       console.error("Error accessing coordinates", e);
@@ -282,7 +285,7 @@ export const GlobeComponent = ({
     if (regionName) {
       // Use the mapped region if available
       closestRegion = defaultRegions.find(r => r.name === regionName) || defaultRegions[0];
-      console.log(`Found region from mapping: ${closestRegion.name} for country: ${countryName}`);
+      if (DEBUG) console.log(`Found region from mapping: ${closestRegion.name} for country: ${countryName}`);
     } else {
       // Fallback to calculating closest region by distance
       closestRegion = defaultRegions[0];
@@ -300,7 +303,7 @@ export const GlobeComponent = ({
         }
       });
       
-      console.log(`Closest region by calculation: ${closestRegion.name}`);
+      if (DEBUG) console.log(`Closest region by calculation: ${closestRegion.name}`);
     }
     
     // Get food data for the clicked country or use generic data
@@ -323,7 +326,7 @@ export const GlobeComponent = ({
       food_fact: countryFoodData.fact
     };
     
-    console.log('Setting tooltip with data:', tooltipData);
+    if (DEBUG) console.log('Setting tooltip with data:', tooltipData);
     setTooltip(tooltipData);
     
     // Also notify parent component about selected region
@@ -341,7 +344,7 @@ export const GlobeComponent = ({
       return;
     }
 
-    console.log("Initializing globe with GeoJSON data");
+    if (DEBUG) console.log("Initializing globe with GeoJSON data");
     
     // Clear existing Globe instances to prevent DOM conflicts
     if (globeRef.current) {
@@ -349,7 +352,7 @@ export const GlobeComponent = ({
         // We already have a globe instance, don't create a new one
         return;
       } catch (e) {
-        console.warn('Error checking existing globe instance, will create a new one');
+        if (DEBUG) console.warn('Error checking existing globe instance, will create a new one');
       }
     }
     
@@ -424,7 +427,7 @@ export const GlobeComponent = ({
       
       // Extra click handler on the globe surface for debugging
       globe.onGlobeClick((coords: any) => {
-        console.log('Globe clicked at:', coords);
+        if (DEBUG) console.log('Globe clicked at:', coords);
       });
       
       // Camera controls
@@ -503,7 +506,7 @@ export const GlobeComponent = ({
 
     // Center the globe on the recipe's coordinates
     try {
-      console.log(`Centering globe on recipe: ${selectedRecipe.title}, coordinates: ${selectedRecipe.coordinates}`);
+      if (DEBUG) console.log(`Centering globe on recipe: ${selectedRecipe.title}, coordinates: ${selectedRecipe.coordinates}`);
       const [lat, lng] = selectedRecipe.coordinates;
       
       // Animate move to the recipe coordinates with appropriate altitude
@@ -634,11 +637,11 @@ export const GlobeComponent = ({
           >
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-xl font-bold text-blue-300">{tooltip.country}</h3>
-              <button 
+              <button
                 onClick={() => {
-                  console.log('Close button clicked');
+                  if (DEBUG) console.log('Close button clicked');
                   setTooltip(null);
-                }} 
+                }}
                 className="p-1 rounded-full hover:bg-gray-700 transition-colors"
               >
                 <X size={16} />
@@ -681,7 +684,7 @@ export const GlobeComponent = ({
               <div className="pt-4 text-center">
                 <button
                   onClick={() => {
-                    console.log('Explore button clicked for country:', tooltip.country);
+                    if (DEBUG) console.log('Explore button clicked for country:', tooltip.country);
                     // Notify parent about country selection
                     if (onRegionSelect) {
                       onRegionSelect({
