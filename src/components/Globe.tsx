@@ -185,6 +185,7 @@ export const GlobeComponent = ({
   const globeRef = useRef<any>(null);
   const [currentRegion, setCurrentRegion] = useState<string | null>(null);
   const [hoveredRecipe, setHoveredRecipe] = useState<Recipe | null>(null);
+  const arcTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isGlobeLoaded, setIsGlobeLoaded] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [geoJsonData, setGeoJsonData] = useState<any>(null);
@@ -538,6 +539,46 @@ export const GlobeComponent = ({
     }, 50);
 
     return () => clearInterval(pulseInterval);
+  }, [selectedRecipe]);
+
+  // Display a temporary arc when a recipe is selected
+  useEffect(() => {
+    if (!globeRef.current || !selectedRecipe) return;
+
+    const [lat, lng] = selectedRecipe.coordinates;
+    const globe = globeRef.current;
+
+    const arc = [{
+      startLat: lat,
+      startLng: lng,
+      endLat: lat,
+      endLng: lng,
+      color: '#ff6b6b'
+    }];
+
+    globe.arcsData(arc)
+         .arcColor('color')
+         .arcAltitude(0.2)
+         .arcStroke(0.5)
+         .arcDashLength(0.4)
+         .arcDashGap(4)
+         .arcDashInitialGap(() => Math.random() * 4)
+         .arcDashAnimateTime(1000);
+
+    // Remove arc after a short delay
+    const timeoutId = setTimeout(() => {
+      globe.arcsData([]);
+    }, 2000);
+
+    arcTimeoutRef.current = timeoutId;
+
+    return () => {
+      if (arcTimeoutRef.current) {
+        clearTimeout(arcTimeoutRef.current);
+        arcTimeoutRef.current = null;
+      }
+      globe.arcsData([]);
+    };
   }, [selectedRecipe]);
 
   return (
