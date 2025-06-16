@@ -1,14 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import Globe from "globe.gl";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
-// Extend the Window interface to include the Globe instance
-declare global {
-  interface Window {
-    Globe: any;
-  }
-}
 
 export interface Recipe {
   id: string;
@@ -178,7 +172,6 @@ export const GlobeComponent = ({
   const globeRef = useRef<any>(null);
   const [currentRegion, setCurrentRegion] = useState<string | null>(null);
   const [hoveredRecipe, setHoveredRecipe] = useState<Recipe | null>(null);
-  const [isGlobeLoaded, setIsGlobeLoaded] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [geoJsonData, setGeoJsonData] = useState<any>(null);
 
@@ -212,33 +205,6 @@ export const GlobeComponent = ({
     fetchGeoJSON();
   }, []);
 
-  // Load the Globe.gl script - only once, no removal on unmount
-  useEffect(() => {
-    // Check if script already exists
-    const existingScript = document.getElementById('globe-gl-script');
-    if (existingScript) {
-      setIsGlobeLoaded(true);
-      return;
-    }
-
-    // Add the script tag for Globe.gl to the page
-    const script = document.createElement('script');
-    script.id = 'globe-gl-script';
-    script.src = "https://cdn.jsdelivr.net/npm/globe.gl@2.29.0/dist/globe.gl.min.js";
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    
-    script.onload = () => {
-      console.log("Globe.gl script loaded");
-      setIsGlobeLoaded(true);
-    };
-    
-    document.body.appendChild(script);
-    console.log("Globe.gl script added to page");
-
-    // No cleanup for the script - we want it to persist across component mounts
-    // to avoid reloading it multiple times
-  }, []);
 
   // Handle country click - creates tooltip with food data
   const handleCountryClick = (country: any) => {
@@ -326,9 +292,9 @@ export const GlobeComponent = ({
     });
   };
 
-  // Initialize globe once it's loaded and data is available
+  // Initialize globe once data is available
   useEffect(() => {
-    if (!isGlobeLoaded || !containerRef.current || !window.Globe || !geoJsonData) {
+    if (!containerRef.current || !geoJsonData) {
       return;
     }
 
@@ -348,11 +314,10 @@ export const GlobeComponent = ({
       // Create a new globe instance
       const containerWidth = containerRef.current.clientWidth || 800;
       const containerHeight = containerRef.current.clientHeight || 600;
-      
-      const globe = window.Globe()
+
+      const globe = new Globe(containerRef.current)
         .width(containerWidth)
-        .height(containerHeight)
-        (containerRef.current);
+        .height(containerHeight);
       
       // Store reference for later use
       globeRef.current = globe;
@@ -380,10 +345,10 @@ export const GlobeComponent = ({
       if (recipes.length > 0) {
         globe
           .pointsData(recipesData)
-          .pointColor(d => d.id === selectedRecipe?.id ? '#ffd700' : '#e67e22') // Use a consistent orange color for recipe points
+          .pointColor((d: any) => d.id === selectedRecipe?.id ? '#ffd700' : '#e67e22') // Use a consistent orange color for recipe points
           .pointAltitude(0.07)
-          .pointRadius(d => d.id === selectedRecipe?.id ? 0.4 : 0.25)
-          .pointLabel(d => {
+          .pointRadius((d: any) => d.id === selectedRecipe?.id ? 0.4 : 0.25)
+          .pointLabel((d: any) => {
             return `
               <div style="text-align:center;color:white;background:rgba(0,0,0,0.75);padding:5px;border-radius:5px">
                 <div style="font-weight:bold">${d.title || ''}</div>
@@ -394,7 +359,7 @@ export const GlobeComponent = ({
       }
       
       // Set up hover events for countries
-      globe.onHexPolygonHover(polygon => {
+      globe.onHexPolygonHover((polygon: any) => {
         if (polygon && polygon.properties) {
           const countryName = polygon.properties.ADMIN;
           setCurrentRegion(countryName);
@@ -453,7 +418,6 @@ export const GlobeComponent = ({
       console.error('Error initializing globe:', error);
     }
   }, [
-    isGlobeLoaded, 
     geoJsonData,
     // Remove dependencies that might cause too many re-renders
     // Only re-initialize on fundamental changes
@@ -470,8 +434,8 @@ export const GlobeComponent = ({
       if (recipes.length > 0) {
         globe
           .pointsData(recipesData)
-          .pointColor(d => d.id === selectedRecipe?.id ? '#ffd700' : d.color)
-          .pointRadius(d => d.id === selectedRecipe?.id ? 0.4 : 0.25);
+          .pointColor((d: any) => d.id === selectedRecipe?.id ? '#ffd700' : d.color)
+          .pointRadius((d: any) => d.id === selectedRecipe?.id ? 0.4 : 0.25);
       }
       
     } catch (error) {
@@ -511,7 +475,7 @@ export const GlobeComponent = ({
       
       try {
         if (globeRef.current) {
-          globeRef.current.pointRadius(d => {
+          globeRef.current.pointRadius((d: any) => {
             return d && d.id === selectedRecipe.id ? pulseSize : 0.25;
           });
         }
