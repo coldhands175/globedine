@@ -7,6 +7,21 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
+## Getting Started
+
+1. Install **Node.js 18** or later.
+2. Run the setup script:
+
+```bash
+./setup.sh
+```
+
+### Environment Variables
+
+- `VITE_BASE_PATH` – optional base path when building for production.
+- `VITE_TEMPO` – set to `"true"` to enable Tempo routes.
+- `SUPABASE_PROJECT_ID` – used by `npm run types:supabase`.
+
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
