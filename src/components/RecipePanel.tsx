@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,12 @@ const RecipePanel = ({
   const [activeTab, setActiveTab] = useState("explore");
   const [selectedRecipeState, setSelectedRecipeState] = useState<Recipe | null>(null);
   const [dietaryFilters, setDietaryFilters] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (selectedRecipe) {
+      setSelectedRecipeState(selectedRecipe);
+    }
+  }, [selectedRecipe]);
 
   const dietaryOptions = [
     { id: "vegetarian", label: "Vegetarian" },
@@ -301,7 +308,6 @@ const RecipePanel = ({
                 size="icon"
                 className="h-8 w-8 mr-2 text-slate-400 hover:bg-slate-800 hover:text-white"
                 onClick={() => {
-                  setSelectedRecipeState(null);
                   onRecipeSelect(null);
                 }}
               >
@@ -331,7 +337,34 @@ const RecipePanel = ({
       </CardHeader>
 
       <CardContent className="flex-1 p-0 overflow-hidden">
-        {currentRecipe ? renderRecipeDetail() : renderRecipeList()}
+        <AnimatePresence
+          mode="wait"
+          onExitComplete={() => setSelectedRecipeState(null)}
+        >
+          {currentRecipe ? (
+            <motion.div
+              key="detail"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="h-full"
+            >
+              {renderRecipeDetail()}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.3 }}
+              className="h-full"
+            >
+              {renderRecipeList()}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardContent>
     </Card>
   );
