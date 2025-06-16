@@ -3,9 +3,9 @@
  * Documentation: https://spoonacular.com/food-api/docs
  */
 
-// NOTE: You'll need to replace this with your actual API key from Spoonacular
-// Get one from: https://spoonacular.com/food-api/console#Dashboard
-const API_KEY = '52a9dd1d347844378be7d8d835e2ed91';
+// Use the API key provided via Vite environment variables
+// Define VITE_SPOONACULAR_KEY in a `.env` file at the project root
+const API_KEY = import.meta.env.VITE_SPOONACULAR_KEY as string;
 const BASE_URL = 'https://api.spoonacular.com';
 
 // Common query params used with most endpoints
